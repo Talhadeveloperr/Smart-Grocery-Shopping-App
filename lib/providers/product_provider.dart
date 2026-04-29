@@ -28,5 +28,18 @@ class ProductProvider extends ChangeNotifier {
       return keywords.any((key) => p.name.toLowerCase().contains(key));
     }).toList();
   }
+
+  void addProduct(Product product) {
+    _products.add(product);
+    notifyListeners();
+  }
+
+  void updateProduct(String id, Product updatedProduct) {
+    final index = _products.indexWhere((p) => p.id == id);
+    if (index != -1) {
+      _products[index] = updatedProduct;
+      notifyListeners();
+    }
+  }
 }
 

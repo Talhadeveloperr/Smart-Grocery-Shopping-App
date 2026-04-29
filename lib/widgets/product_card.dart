@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../screens/buyer/product_detail_screen.dart';
-
+import '../screens/seller/add_product_screen.dart';
 class ProductCard extends StatelessWidget {
   final Product product;
 
@@ -88,7 +88,33 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: Colors.black26, blurRadius: 4),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.edit, size: 18),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                AddProductScreen(existingProduct: product),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ],
+
             ),
             // Content Section
             Padding(
