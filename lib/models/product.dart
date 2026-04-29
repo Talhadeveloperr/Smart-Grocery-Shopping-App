@@ -11,6 +11,16 @@ class Product {
   final String category;
   final bool inStock;
   final String unit;
+  final String brand;
+  final String model;
+  final String warranty;
+  final List<String> images;
+  final List<String> features;
+  final String sellerName;
+  final double sellerRating;
+  final int sellerReviews;
+  final String deliveryEstimate;
+  final double deliveryFee;
 
   Product({
     required this.id,
@@ -24,9 +34,18 @@ class Product {
     this.category = 'General',
     this.inStock = true,
     this.unit = 'piece',
+    this.brand = '',
+    this.model = '',
+    this.warranty = '',
+    this.images = const [],
+    this.features = const [],
+    this.sellerName = '',
+    this.sellerRating = 0.0,
+    this.sellerReviews = 0,
+    this.deliveryEstimate = '',
+    this.deliveryFee = 0.0,
   });
 
-  // Helper method to get category icon
   String get categoryIcon {
     switch (category.toLowerCase()) {
       case 'dairy':
