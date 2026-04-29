@@ -1,4 +1,4 @@
-// ===================== models/product.dart =====================
+// ===================== models/product.dart (Complete) =====================
 class Product {
   final String id;
   final String name;

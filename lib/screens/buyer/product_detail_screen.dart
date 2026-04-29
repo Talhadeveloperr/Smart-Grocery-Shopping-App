@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
-
+import 'cart_screen.dart';
 import '../../models/product.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -49,17 +49,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     for (int i = 0; i < _quantity; i++) {
       cart.addToCart(widget.product);
     }
-    ScaffoldMessenger.of(context).showSnackBar(
+
+    final messenger = ScaffoldMessenger.of(context);
+
+    messenger.hideCurrentSnackBar();
+
+    messenger.showSnackBar(
       SnackBar(
         content: Text('${_quantity}x ${widget.product.name} added to cart'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'VIEW CART',
-          onPressed: () {
-            Navigator.pushNamed(context, '/cart');
-          },
           textColor: Colors.white,
+          onPressed: () {
+            messenger.hideCurrentSnackBar();
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CartScreen(),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -76,7 +89,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
     final productProvider = Provider.of<ProductProvider>(context);
-    final comparisons = productProvider.getProductsByName(widget.product.name.split(' ')[0]);
+    final comparisons = productProvider.getComparisons(widget.product);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -772,16 +785,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
+  // 1. Tab Button Helper
   Widget _buildTabButton(String tab, String label) {
+    final isSelected = _selectedTab == tab;
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
         onTap: () => setState(() => _selectedTab = tab),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: _selectedTab == tab ? Colors.orange : Colors.transparent,
+                color: isSelected ? Colors.orange : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -790,9 +805,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontWeight:
-              _selectedTab == tab ? FontWeight.bold : FontWeight.normal,
-              color: _selectedTab == tab ? Colors.orange : Colors.grey[600],
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.orange : Colors.grey[600],
             ),
           ),
         ),
@@ -810,13 +824,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             width: 100,
             child: Text(
               label,
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
             child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              value.isNotEmpty ? value : 'N/A',
+              style: const TextStyle(fontWeight: FontWeight.w400),
             ),
           ),
         ],
@@ -824,81 +838,78 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
-  Widget _buildStoreComparisonCard(Product product) {
-    final isCheapest = true; // You can implement logic to find cheapest
-    return Container(
+  Widget _buildStoreComparisonCard(Product item) {
+    return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[200]!),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                product.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.store, size: 30, color: Colors.grey);
-                },
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Store details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.sellerName,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 14, color: Colors.amber),
+                      Text(
+                        ' ${item.sellerRating} • ',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        item.deliveryFee == 0 ? 'Free Delivery' : 'Rs. ${item.deliveryFee} delivery',
+                        style: TextStyle(color: Colors.green[700], fontSize: 12, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            // Price and View Button
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  product.storeId,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  'Rs. ${item.price}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Colors.orange,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Rs. ${product.price}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isCheapest ? Colors.green : Colors.black,
+                OutlinedButton(
+                  onPressed: () {
+                    // Switch to this product's detail page
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProductDetailScreen(product: item),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    side: const BorderSide(color: Colors.orange),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
+                  child: const Text('View'),
                 ),
-                if (isCheapest)
-                  const Text(
-                    'Best Price',
-                    style: TextStyle(color: Colors.green, fontSize: 12),
-                  ),
               ],
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProductDetailScreen(product: product),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.orange,
-              side: const BorderSide(color: Colors.orange),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('View'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
