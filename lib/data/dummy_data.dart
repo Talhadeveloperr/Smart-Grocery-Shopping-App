@@ -43,7 +43,7 @@ List<Product> dummyProducts = [
     price: 110,
     storeId: 'Store B',
     imageUrl: 'https://picsum.photos/id/30/800/600',
-    description: 'Organic certified milk from grass-fed cows. No artificial hormones. Perfect for families who want the best quality milk for their children.',
+    description: 'Organic certified  milk from grass-fed cows. No artificial hormones. Perfect for families who want the best quality milk for their children.',
     rating: 4.8,
     reviewCount: 95,
     category: 'dairy',
